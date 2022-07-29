@@ -1,31 +1,13 @@
-import { ActionPanel, Action, Icon, List } from "@raycast/api";
-
-const ITEMS = Array.from(Array(3).keys()).map((key) => {
-  return {
-    id: key,
-    title: "Title " + key,
-    subtitle: "Subtitle",
-    accessory: "Accessory",
-  };
-});
+import { Detail } from "@raycast/api";
+import { usePromise } from "@raycast/utils";
+import { execa } from "execa";
 
 export default function Command() {
-  return (
-    <List>
-      {ITEMS.map((item) => (
-        <List.Item
-          key={item.id}
-          icon="list-icon.png"
-          title={item.title}
-          subtitle={item.subtitle}
-          accessories={[{ icon: Icon.Text, text: item.accessory }]}
-          actions={
-            <ActionPanel>
-              <Action.CopyToClipboard content={item.title} />
-            </ActionPanel>
-          }
-        />
-      ))}
-    </List>
-  );
+  const { isLoading, data } = usePromise(async () => {
+    const { stdout } = await execa("tmutil", ["status"]);
+    return stdout;
+  });
+  const markdown = data && data.includes("Running = 0;") ? "# Backup Not Running" : "";
+
+  return <Detail isLoading={isLoading} markdown={markdown} />;
 }
